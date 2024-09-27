@@ -1,16 +1,23 @@
-from project import start
+from project import start1
 import random
 
 
 def main():
-        print("\n")
-        print("T E S T I N G   W I T H")
-        meow = 0
-        for i in range(50):
-          meow += start(250, 0.14, 30, 200, 10) #14
-        print(1, ": Total ideal attempts = ", meow, "out of 50")
-        #start(100, 0.14, 14, 100, 10)
-
+        # for s in range (3,20):
+        #     for m in range (2, 10):
+        #for i in range(100):
+                meow = 0
+                print("\n")
+                #print("T E S T I N G   W I T H   elite size = ", m, " and tournament size = ", s)
+                for i in range(100):
+                    meow += start1(700, 0.149, 8, 200, 38) #14
+                    if(i % 10 == 0):
+                        print(i)
+                print("\nTotal ideal attempts = ", meow, "out of 100")
+                # if meow >= 70:
+                #     break
+        #start(200, 0.14, 2, 100, 10)
+#meow += start(200, 0.139, 3, 130, 10) #14 best config 40 out of 100
 
 
 

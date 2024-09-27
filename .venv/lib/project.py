@@ -78,12 +78,10 @@ def calculate_fitness(routes, cities):
 
 
 def rank_selection(population, fitness_scores):
-    # Сортируем популяцию по возрастанию фитнес-оценок (чем меньше, тем лучше)
     sorted_population = sorted(zip(population, fitness_scores), key=lambda x: x[1])
     ranks = list(range(1, len(sorted_population) + 1))
     total_rank = sum(ranks)
 
-    # Выбираем случайное число в пределах суммы рангов
     pick = uniform(0, total_rank)
     current = 0
 
@@ -112,10 +110,10 @@ def elitism_selection(population, fitness_scores, elite_size):
 
 
 def crossover(parent1, parent2):
-    # Инициализируем ребенка пустыми значениями
+    #Initializing empty child
     child = [None] * len(parent1)
 
-    # Шаг 1: Выбираем два случайных индекса для кроссовера
+    #
     cut1 = randint(0, len(parent1) - 1)
     cut2 = randint(0, len(parent1) - 1)
 
@@ -139,19 +137,23 @@ def crossover(parent1, parent2):
 
 def replace_random_individuals(population, num_individuals, indices):
     for _ in range(num_individuals):
-        # Создаем нового случайного индивидуума
         new_individual = indices[:]
         shuffle(new_individual)
 
-        # Выбираем случайный индекс для замены
         replace_index = randint(0, len(population) - 1)
+
 
         # Заменяем индивидуума в популяции на нового
         population[replace_index] = new_individual
 
 
-def create_new_generation(population, fitness_scores, elite_size, mutation_rate, tournament_size):
+def create_new_generation(population, fitness_scores, elite_size, mutation_rate, tournament_size, mutate_all):
     new_generation = []
+
+    if mutate_all:
+        # Мутируем всех лучших индивидов
+        best_individuals = elitism_selection(population, fitness_scores, len(population))
+        mutate_population(best_individuals)
 
     # Шаг 1: Добавляем лучших индивидумов (элитизм)
     elite_individuals = elitism_selection(population, fitness_scores, elite_size)
@@ -169,7 +171,13 @@ def create_new_generation(population, fitness_scores, elite_size, mutation_rate,
     return new_generation
 
 
-def start(population_size, mutation_rate, elite_size, amount_of_generations, tournament_size):
+def mutate_population(population):
+    # Мутируем всех индивидов в популяции
+    for individual in population:
+        mutation(individual)
+
+
+def start1(population_size, mutation_rate, elite_size, amount_of_generations, tournament_size):
     all_shuffled_routes = []
     cities = openfile()
     indices = []
@@ -193,16 +201,27 @@ def start(population_size, mutation_rate, elite_size, amount_of_generations, tou
     calls+=1
     best_fitness = None  # Лучший фитнес на текущий момент
     stagnation_counter = 0  # Счётчик поколений без улучшения
-    stagnation_limit = 5  # Количество поколений для определения стагнации
+    stagnation_limit = 3  # Количество поколений для определения стагнации
     base_mutation_rate = mutation_rate  # Исходная вероятность мутации
-
+    before_elit_size = elite_size
     for generation in range(amount_of_generations):
         #print(f"\nGeneration {generation + 1}")
+        if stagnation_counter >= stagnation_limit:
+            # print(f"Stagnation detected. Increasing mutation rate to {mutation_rate:.2f}")
+            elite_size = 0
+            all_shuffled_routes = create_new_generation(
+                all_shuffled_routes, fitness_scores, elite_size, mutation_rate, tournament_size, True
+            )
+            replace_random_individuals(all_shuffled_routes, 300, indices)
+            stagnation_counter = 0  # Сбрасываем счётчик стагнации
+        else:
+            all_shuffled_routes = create_new_generation(
+                all_shuffled_routes, fitness_scores, elite_size, mutation_rate, tournament_size, False
+            )
+
 
         # Создание нового поколения
-        all_shuffled_routes = create_new_generation(
-            all_shuffled_routes, fitness_scores, elite_size, mutation_rate, tournament_size
-        )
+
 
         # Оценка нового поколения
         fitness_scores = calculate_fitness(all_shuffled_routes, cities)
@@ -216,20 +235,21 @@ def start(population_size, mutation_rate, elite_size, amount_of_generations, tou
             best_fitness = current_best_fitness
             best_route_fin = best_route
             stagnation_counter = 0
-            mutation_rate = base_mutation_rate
+            if elite_size < before_elit_size:
+                 elite_size += 1
+            else:
+                 elite_size = before_elit_size
         else:
             stagnation_counter += 1
             #print(f"No improvement. Stagnation counter: {stagnation_counter}")
 
         # Увеличение вероятности мутации при стагнации
-        if stagnation_counter >= stagnation_limit:
-            #print(f"Stagnation detected. Increasing mutation rate to {mutation_rate:.2f}")
-            replace_random_individuals(all_shuffled_routes, 30, indices)
-            stagnation_counter = 0  # Сбрасываем счётчик стагнации
+
 
         # Проверяем, достиг ли лучший фитнес желаемого диапазона
         if (best_fitness >= 895 and best_fitness < 896): #pu-pu-pu
             score_of_gen += 1
+            break
             # Можно прервать цикл, если найден идеальный фитнес
             # break
         #for i, route in enumerate(all_shuffled_routes):
@@ -238,7 +258,6 @@ def start(population_size, mutation_rate, elite_size, amount_of_generations, tou
         # Выводим лучший маршрут и фитнес
         #print(f"Best Route: {best_route} | Best Fitness: {best_fitness}")
 
-    # Выводим результаты
     print(f"Best Fitness: {best_fitness}")
     print(f"Score = {score_of_gen}")
     if score_of_gen == 0:
