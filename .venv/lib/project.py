@@ -166,7 +166,13 @@ def create_new_generation(population, fitness_scores, elite_size, mutation_rate,
         child = crossover(parent1, parent2)
         if random.random() < mutation_rate:
            mutation(child)
-        new_generation.append(child)
+        if child not in new_generation:
+            new_generation.append(child)
+        else:
+            child = crossover(parent1, parent2)
+            mutation(child)
+            new_generation.append(child)
+
 
     return new_generation
 
@@ -184,79 +190,52 @@ def start1(population_size, mutation_rate, elite_size, amount_of_generations, to
     for i in range(len(cities)):
         indices.append(i)
 
-    #creating first generation (just shuffling array of indexes)
+    # Создаем начальную популяцию
     for _ in range(population_size):
         shuffled_indices = indices[:]
         first_shuffle(shuffled_indices)  # Перемешиваем копию
         all_shuffled_routes.append(shuffled_indices)  # Добавляем в общий список
 
-    #evaluate first generation
+    # Оценка начальной популяции
     fitness_scores = calculate_fitness(all_shuffled_routes, cities)
-    #variable that checks how many generations reached the top fitness
+    before_best_fitness = None
     score_of_gen = 0
-    calls = 0
-    #final results for the generation
-    best_route_fin = []
-    best_fit_fin = 0
-    calls+=1
-    best_fitness = None  # Лучший фитнес на текущий момент
-    stagnation_counter = 0  # Счётчик поколений без улучшения
-    stagnation_limit = 3  # Количество поколений для определения стагнации
-    base_mutation_rate = mutation_rate  # Исходная вероятность мутации
-    before_elit_size = elite_size
+    best_fitness = 0  # Лучший фитнес на текущий момент
+    stagn_counter = 0
+
     for generation in range(amount_of_generations):
-        #print(f"\nGeneration {generation + 1}")
-        if stagnation_counter >= stagnation_limit:
-            # print(f"Stagnation detected. Increasing mutation rate to {mutation_rate:.2f}")
-            elite_size = 0
-            all_shuffled_routes = create_new_generation(
-                all_shuffled_routes, fitness_scores, elite_size, mutation_rate, tournament_size, True
-            )
-            replace_random_individuals(all_shuffled_routes, 300, indices)
-            stagnation_counter = 0  # Сбрасываем счётчик стагнации
-        else:
-            all_shuffled_routes = create_new_generation(
+        # print(f"\nGeneration {generation + 1}")
+
+
+        all_shuffled_routes = create_new_generation(
                 all_shuffled_routes, fitness_scores, elite_size, mutation_rate, tournament_size, False
-            )
-
-
-        # Создание нового поколения
-
+        )
 
         # Оценка нового поколения
         fitness_scores = calculate_fitness(all_shuffled_routes, cities)
+        best_fitness = min(fitness_scores)
 
-        current_best_fitness = min(fitness_scores)
-        best_index = fitness_scores.index(current_best_fitness)
+        best_index = fitness_scores.index(best_fitness)
         best_route = all_shuffled_routes[best_index]
 
         # Проверка на улучшение
-        if best_fitness is None or current_best_fitness < best_fitness:
-            best_fitness = current_best_fitness
-            best_route_fin = best_route
-            stagnation_counter = 0
-            if elite_size < before_elit_size:
-                 elite_size += 1
-            else:
-                 elite_size = before_elit_size
-        else:
-            stagnation_counter += 1
-            #print(f"No improvement. Stagnation counter: {stagnation_counter}")
-
-        # Увеличение вероятности мутации при стагнации
-
-
+        if best_fitness == before_best_fitness:
+            stagn_counter += 1
+        before_best_fitness = best_fitness
+        if stagn_counter >= 3:
+            shuffle(all_shuffled_routes[best_index])
+            stagn_counter= 0
         # Проверяем, достиг ли лучший фитнес желаемого диапазона
-        if (best_fitness >= 895 and best_fitness < 896): #pu-pu-pu
+        if best_fitness < 896:  # pu-pu-pu
             score_of_gen += 1
             break
             # Можно прервать цикл, если найден идеальный фитнес
             # break
-        #for i, route in enumerate(all_shuffled_routes):
-            #print(f"Route {i + 1}: {route}")
+        # for i, route in enumerate(all_shuffled_routes):
+        # print(f"Route {i + 1}: {route}")
 
         # Выводим лучший маршрут и фитнес
-        #print(f"Best Route: {best_route} | Best Fitness: {best_fitness}")
+        # print(f"Best Route: {best_route} | Best Fitness: {best_fitness}")
 
     print(f"Best Fitness: {best_fitness}")
     print(f"Score = {score_of_gen}")
@@ -264,6 +243,7 @@ def start1(population_size, mutation_rate, elite_size, amount_of_generations, to
         return 0
     else:
         return 1
+
 
 
 
