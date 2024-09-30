@@ -10,7 +10,7 @@ def main():
                 print("\n")
                 #print("T E S T I N G   W I T H   elite size = ", m, " and tournament size = ", s)
                 for i in range(100):
-                    meow += start1(450, 0.12, 45, 200, 15) #
+                    meow += start1(450, 0.12, 45, 200, 15) #450, 0.12, 45, 200, 15) #
                     if i % 10 == 0:
                         print(i)
                 print("\nTotal ideal attempts = ", meow, "out of 100")

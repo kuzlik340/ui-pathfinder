@@ -198,11 +198,9 @@ def start1(population_size, mutation_rate, elite_size, amount_of_generations, to
 
     # Оценка начальной популяции
     fitness_scores = calculate_fitness(all_shuffled_routes, cities)
-    before_best_fitness = None
     score_of_gen = 0
     best_fitness = 0  # Лучший фитнес на текущий момент
-    stagn_counter = 0
-
+    last_best_fitness = 0
     for generation in range(amount_of_generations):
         # print(f"\nGeneration {generation + 1}")
 
@@ -218,31 +216,23 @@ def start1(population_size, mutation_rate, elite_size, amount_of_generations, to
         best_index = fitness_scores.index(best_fitness)
         best_route = all_shuffled_routes[best_index]
 
-        # Проверка на улучшение
-        if best_fitness == before_best_fitness:
-            stagn_counter += 1
-        before_best_fitness = best_fitness
-        if stagn_counter >= 3:
-            shuffle(all_shuffled_routes[best_index])
-            stagn_counter= 0
         # Проверяем, достиг ли лучший фитнес желаемого диапазона
-        if best_fitness < 896:  # pu-pu-pu
+        if best_fitness == last_best_fitness:  # pu-pu-pu
             score_of_gen += 1
-            break
-            # Можно прервать цикл, если найден идеальный фитнес
-            # break
+        else:
+            score_of_gen = 0
+        last_best_fitness = best_fitness
         # for i, route in enumerate(all_shuffled_routes):
         # print(f"Route {i + 1}: {route}")
-
         # Выводим лучший маршрут и фитнес
         # print(f"Best Route: {best_route} | Best Fitness: {best_fitness}")
 
     print(f"Best Fitness: {best_fitness}")
     print(f"Score = {score_of_gen}")
-    if score_of_gen == 0:
-        return 0
-    else:
+    if best_fitness < 896:
         return 1
+    else:
+        return 0
 
 
 
