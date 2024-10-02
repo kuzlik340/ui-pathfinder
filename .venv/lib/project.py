@@ -19,40 +19,41 @@ def openfile():
     return cities
 
 
-def first_shuffle(arr):
-    shuffle(arr)
+
+
+
+def mut_swap_two_neighbours(arr):
+    ind = randint(0, len(arr) - 2)
+    arr[ind], arr[ind + 1] = arr[ind + 1], arr[ind]
+
+def mut_swap_two_rand(arr):
+    ind1 = randint(0, len(arr) - 1)
+    ind2 = randint(0, len(arr) - 1)
+    arr[ind1], arr[ind2] = arr[ind2], arr[ind1]
+
+def mut_reverse_subarray(arr):
+    start = randint(0, len(arr) - 2)
+    end = randint(start + 1, len(arr) - 1)
+    arr[start:end] = arr[start:end][::-1]
+
+def mut_shuffle_subarray(arr):
+    start = randint(0, len(arr) - 2)
+    end = randint(start + 1, len(arr) - 1)
+    subarray = arr[start:end]
+    shuffle(subarray)
+    arr[start:end] = subarray
 
 
 def mutation(arr): #may change parameter for major mutation
-    chos = randint(0, 100)
-    if chos <= 87 and chos >=80:
-        ind = randint(0, len(arr)-2)
-        arr[ind], arr[ind+1] = arr[ind+1], arr[ind]
-    elif chos < 80 and chos > 50:
-        # Выбираем два случайных индекса
-        start = randint(0, len(arr) - 2)
-        end = randint(start + 1, len(arr) - 1)
-        # Инвертируем подмассив между этими индексами
-        arr[start:end] = arr[start:end][::-1]
-    elif chos <= 40 and chos >30:
-        # Выбираем два случайных индекса
-        start = randint(0, len(arr) - 2)
-        end = randint(start + 1, len(arr) - 1)
-        # Перемешиваем подмассив между этими индексами
-        subarray = arr[start:end]
-        shuffle(subarray)
-        arr[start:end] = subarray
-    elif chos <=30  and chos >=13:
-        # Выбираем случайный элемент для удаления и вставки
-        index = randint(0, len(arr) - 1)
-        value = arr.pop(index)
-        # Выбираем случайный индекс для вставки
-        new_index = randint(0, len(arr) - 1)
-        arr.insert(new_index, value)
+    mutation_type_chance = randint(0, 100)
+    if mutation_type_chance > 75:
+        mut_swap_two_neighbours(arr)
+    elif mutation_type_chance > 50:
+        mut_reverse_subarray(arr)
+    elif mutation_type_chance > 30:
+        mut_shuffle_subarray(arr)
     else:
-        ind1 = randint(0, len(arr) - 1)
-        ind2 = randint(0, len(arr) - 1)
-        arr[ind1], arr[ind2] = arr[ind2], arr[ind1]
+        mut_swap_two_rand(arr)
 
 def dist(x1, y1, x2, y2):
     return math.sqrt(((x1 - x2)**2) + ((y1 - y2)**2))
@@ -76,19 +77,6 @@ def calculate_fitness(routes, cities):
         fitness.append(fit_tmp)
     return fitness
 
-
-def rank_selection(population, fitness_scores):
-    sorted_population = sorted(zip(population, fitness_scores), key=lambda x: x[1])
-    ranks = list(range(1, len(sorted_population) + 1))
-    total_rank = sum(ranks)
-
-    pick = uniform(0, total_rank)
-    current = 0
-
-    for i, (individual, _) in enumerate(sorted_population):
-        current += ranks[i]
-        if current > pick:
-            return individual
 
 def roulette_wheel_selection(population, fitness_scores):
     total_fitness = sum(fitness_scores)
@@ -193,7 +181,7 @@ def start1(population_size, mutation_rate, elite_size, amount_of_generations, to
     # Создаем начальную популяцию
     for _ in range(population_size):
         shuffled_indices = indices[:]
-        first_shuffle(shuffled_indices)  # Перемешиваем копию
+        shuffle(shuffled_indices)  # Перемешиваем копию
         all_shuffled_routes.append(shuffled_indices)  # Добавляем в общий список
 
     # Оценка начальной популяции
@@ -201,8 +189,9 @@ def start1(population_size, mutation_rate, elite_size, amount_of_generations, to
     score_of_gen = 0
     best_fitness = 0  # Лучший фитнес на текущий момент
     last_best_fitness = 0
+    best_route = None
     for generation in range(amount_of_generations):
-        # print(f"\nGeneration {generation + 1}")
+        #print(f"\nGeneration {generation + 1}")
 
 
         all_shuffled_routes = create_new_generation(
@@ -222,17 +211,9 @@ def start1(population_size, mutation_rate, elite_size, amount_of_generations, to
         else:
             score_of_gen = 0
         last_best_fitness = best_fitness
-        # for i, route in enumerate(all_shuffled_routes):
-        # print(f"Route {i + 1}: {route}")
         # Выводим лучший маршрут и фитнес
-        # print(f"Best Route: {best_route} | Best Fitness: {best_fitness}")
+    print(f"Best Route: {best_route} | Best Fitness: {best_fitness}")
 
-    print(f"Best Fitness: {best_fitness}")
-    print(f"Score = {score_of_gen}")
-    if best_fitness < 896:
-        return 1
-    else:
-        return 0
 
 
 
